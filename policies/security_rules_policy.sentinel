@@ -1,0 +1,20 @@
+import "tfplan"
+
+# Rule: Security rules must have a priority less than or equal to 500
+priority_rule = rule {
+  all tfplan.azurerm_network_security_group.security_rules as _, rule {
+    rule.priority <= 500
+  }
+}
+
+# Rule: Security rules must have unique names within the security group
+unique_names_rule = rule {
+  all tfplan.azurerm_network_security_group.security_rules as _, rule {
+    count(filter(tfplan.azurerm_network_security_group.security_rules, func(_, r) { r.name == rule.name })) == 1
+  }
+}
+
+main = rule {
+  priority_rule and unique_names_rule
+}
+
